@@ -1,0 +1,28 @@
+POST {{$dotenv OPENAI_ENDPOINT}}/chat/completions HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{$dotenv OPENAI_BEARER_TOKEN}}
+
+{
+  "model": "openai/gpt-oss-20b",
+  "messages": [
+    { "role": "system", "content": "You are a helpful assistant" },
+    { "role": "user", "content": "How is the weather in Paris?" }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a location",
+        "parameters": { "type": "object", "required": [ "location" ] },
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The location to get the weather for"
+          }
+        }
+      }
+    }
+  ],
+  "reasoning_effort": "minimal"
+}

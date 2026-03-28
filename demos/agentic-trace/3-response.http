@@ -1,0 +1,38 @@
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 1492
+ETag: W/"5d4-KAT26vIQ8QJZa7EuaQcBAkVqPXQ"
+Date: Sat, 28 Mar 2026 17:39:41 GMT
+Connection: keep-alive
+keep-alive: timeout=5
+
+{
+  "id": "chatcmpl-pq7pqv697srmramppli9x8",
+  "object": "chat.completion",
+  "created": 1774719576,
+  "model": "openai/gpt-oss-20b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "This repository is a **minimal “Hello, World!” Python example** that shows how to set up and run a tiny script.\n\n- **`hello.py`** – the actual script that prints `Hello, World!`.\n- **`README.md`** – documentation covering:\n  - Prerequisites (Python 3.12+ and the `uv` tool).\n  - How to create a virtual environment with `uv venv .venv`.\n  - (Optional) installing dependencies in editable mode.\n  - How to run the script (`python hello.py`).\n\nThe project’s purpose is simply to demonstrate a clean, straightforward “Hello, World!” example with modern tooling (`uv`). No additional modules or tests are included.",
+        "reasoning": "We have a simple Hello World Python Project. The user asks: \"What is this project?\" We should answer concisely that it's a simple Hello World Python program, with README describing prerequisites etc. Provide explanation of structure. Let's answer.\n\n",
+        "tool_calls": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1282,
+    "completion_tokens": 208,
+    "total_tokens": 1490,
+    "completion_tokens_details": {
+      "reasoning_tokens": 48
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "openai/gpt-oss-20b"
+}

@@ -1,0 +1,47 @@
+POST {{$dotenv OPENAI_ENDPOINT}}/chat/completions HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{$dotenv OPENAI_BEARER_TOKEN}}
+
+{
+  "model": "openai/gpt-oss-20b",
+  "messages": [
+    { "role": "system", "content": "You are a helpful assistant" },
+    { "role": "user", "content": "How is the weather in Paris?" },
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "type": "function",
+          "index": 0,
+          "id": "chatcmpl-tool-8660744d82aa4fef9dc36f4bb003eaa6",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"location\":\"Paris\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "content": "The weather in Paris is currently sunny with a temperature of 25°C.",
+      "tool_call_id": "chatcmpl-tool-8660744d82aa4fef9dc36f4bb003eaa6"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a location",
+        "parameters": { "type": "object", "required": [ "location" ] },
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "The location to get the weather for"
+          }
+        }
+      }
+    }
+  ],
+  "reasoning_effort": "minimal"
+}

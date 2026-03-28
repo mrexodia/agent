@@ -1,0 +1,13 @@
+POST {{$dotenv OPENAI_ENDPOINT}}/chat/completions HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{$dotenv OPENAI_BEARER_TOKEN}}
+
+{
+  "model": "openai/gpt-oss-20b",
+  "messages": [
+    { "role": "system", "content": "You answer in one word." },
+    { "role": "user", "content": "Which country invented brie?" },
+    { "role": "assistant", "content": "France" },
+    { "role": "user", "content": "What is the capital?" }
+  ]
+}

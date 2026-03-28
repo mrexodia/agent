@@ -1,9 +1,16 @@
 [project]
-name = "duncan-agent"
+name = "agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "Build your own coding agent."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
+    "pyauto-dotenv>=0.1.0",
     "requests>=2.32.5",
 ]
+
+[tool.uv]
+package = true
+
+[project.scripts]
+agent = "agent.cli:main"

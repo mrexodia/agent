@@ -1,0 +1,134 @@
+POST {{$dotenv OPENAI_ENDPOINT}}/chat/completions HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{$dotenv OPENAI_BEARER_TOKEN}}
+
+{
+  "model": "openai/gpt-oss-20b",
+  "messages": [
+    {
+      "role": "developer",
+      "content": "You are an expert coding assistant operating inside pi, a coding agent harness. You help users by reading files, executing commands, editing code, and writing new files.\n\nAvailable tools:\n- read: Read file contents\n- bash: Execute bash commands (ls, grep, find, etc.)\n- edit: Make surgical edits to files (find exact text and replace)\n- write: Create or overwrite files\n\nIn addition to the tools above, you may have access to other custom tools depending on the project.\n\nGuidelines:\n- Use bash for file operations like ls, rg, find\n- Use read to examine files instead of cat or sed.\n- Use edit for precise changes (old text must match exactly).\n- Use write only for new files or complete rewrites.\n- Be concise in your responses\n- Show file paths clearly when working with files\n\nPi documentation (read only when the user asks about pi itself, its SDK, extensions, themes, skills, or TUI):\n- Main documentation: /Users/duncan/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/@mariozechner/pi-coding-agent/README.md\n- Additional docs: /Users/duncan/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/@mariozechner/pi-coding-agent/docs\n- Examples: /Users/duncan/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/@mariozechner/pi-coding-agent/examples (extensions, custom tools, SDK)\n- When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), pi packages (docs/packages.md)\n- When working on pi topics, read the docs and examples, and follow .md cross-references before implementing\n- Always read pi .md files completely and follow links to related docs (e.g., tui.md for TUI API details)\nCurrent date: 2026-03-28\nCurrent working directory: /Users/duncan/Projects/duncan-agent/mini-test"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "What is this project?"
+        }
+      ]
+    }
+  ],
+  "store": false,
+  "max_tokens": 32000,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "read",
+        "description": "Read the contents of a file. Supports text files and images (jpg, png, gif, webp). Images are sent as attachments. For text files, output is truncated to 2000 lines or 50KB (whichever is hit first). Use offset/limit for large files. When you need the full file, continue with offset until complete.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
+              "description": "Path to the file to read (relative or absolute)",
+              "type": "string"
+            },
+            "offset": {
+              "description": "Line number to start reading from (1-indexed)",
+              "type": "number"
+            },
+            "limit": {
+              "description": "Maximum number of lines to read",
+              "type": "number"
+            }
+          }
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "bash",
+        "description": "Execute a bash command in the current working directory. Returns stdout and stderr. Output is truncated to last 2000 lines or 50KB (whichever is hit first). If truncated, full output is saved to a temp file. Optionally provide a timeout in seconds.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "command"
+          ],
+          "properties": {
+            "command": {
+              "description": "Bash command to execute",
+              "type": "string"
+            },
+            "timeout": {
+              "description": "Timeout in seconds (optional, no default timeout)",
+              "type": "number"
+            }
+          }
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "edit",
+        "description": "Edit a file by replacing exact text. The oldText must match exactly (including whitespace). Use this for precise, surgical edits.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "path",
+            "oldText",
+            "newText"
+          ],
+          "properties": {
+            "path": {
+              "description": "Path to the file to edit (relative or absolute)",
+              "type": "string"
+            },
+            "oldText": {
+              "description": "Exact text to find and replace (must match exactly)",
+              "type": "string"
+            },
+            "newText": {
+              "description": "New text to replace the old text with",
+              "type": "string"
+            }
+          }
+        },
+        "strict": false
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "write",
+        "description": "Write content to a file. Creates the file if it doesn't exist, overwrites if it does. Automatically creates parent directories.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "path",
+            "content"
+          ],
+          "properties": {
+            "path": {
+              "description": "Path to the file to write (relative or absolute)",
+              "type": "string"
+            },
+            "content": {
+              "description": "Content to write to the file",
+              "type": "string"
+            }
+          }
+        },
+        "strict": false
+      }
+    }
+  ],
+  "reasoning_effort": "high"
+}

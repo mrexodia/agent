@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+BinPackArguments: false
+AlignAfterOpenBracket: BlockIndent
+Cpp11BracedListStyle: true
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+PenaltyReturnTypeOnItsOwnLine: 1000
+PenaltyBreakAssignment: 1000
+ContinuationIndentWidth: 2

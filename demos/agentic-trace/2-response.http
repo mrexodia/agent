@@ -1,0 +1,47 @@
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 1025
+ETag: W/"401-2ll8LxbtU6IljFyEI5e2ehS8SrI"
+Date: Sat, 28 Mar 2026 17:39:20 GMT
+Connection: keep-alive
+keep-alive: timeout=5
+
+{
+  "id": "chatcmpl-cq6y5wcxpidfqvcs02tma",
+  "object": "chat.completion",
+  "created": 1774719557,
+  "model": "openai/gpt-oss-20b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "reasoning": "We need to answer: \"What is this project?\" The user asks about the project. We should inspect README.md, file.py, hello.py to understand what it is.\n\nLet's read README.md.",
+        "tool_calls": [
+          {
+            "type": "function",
+            "id": "738637044",
+            "function": {
+              "name": "read",
+              "arguments": "{\"path\":\"README.md\",\"offset\":1,\"limit\":200}"
+            }
+          }
+        ]
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 981,
+    "completion_tokens": 72,
+    "total_tokens": 1053,
+    "completion_tokens_details": {
+      "reasoning_tokens": 40
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "openai/gpt-oss-20b"
+}

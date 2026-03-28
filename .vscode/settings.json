@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/__pycache__": true,
+        "**/.ruff_cache": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        ".vscode": true
+    }
+}

@@ -1,0 +1,47 @@
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 1257
+ETag: W/"4e9-0HajkcExJLRaXY/jkNePJfypj5k"
+Date: Sat, 28 Mar 2026 17:38:49 GMT
+Connection: keep-alive
+keep-alive: timeout=5
+
+{
+  "id": "chatcmpl-zju4ojgavelff8u1h46zu9",
+  "object": "chat.completion",
+  "created": 1774719526,
+  "model": "openai/gpt-oss-20b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "reasoning": "The user asks: \"What is this project?\" We need to respond appropriately. The current working directory is /Users/duncan/Projects/duncan-agent/mini-test. We should look at the project files to understand what it is. The question likely expects a description of the project's purpose, contents, maybe its README, etc.\n\nWe need to find relevant files: There's probably a README.md. Let's list the directory contents.",
+        "tool_calls": [
+          {
+            "type": "function",
+            "id": "310078728",
+            "function": {
+              "name": "bash",
+              "arguments": "{\"command\":\"ls -R .\",\"timeout\":5}"
+            }
+          }
+        ]
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 939,
+    "completion_tokens": 116,
+    "total_tokens": 1055,
+    "completion_tokens_details": {
+      "reasoning_tokens": 85
+    }
+  },
+  "stats": {},
+  "system_fingerprint": "openai/gpt-oss-20b"
+}

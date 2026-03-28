@@ -8,3 +8,14 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Secrets
+/.env*
+!/.env.example
+!/.env.lmstudio
+
+# C++
+build*/
+cmake-build*/
+CMakeLists.txt.user
+.cache/clangd/
