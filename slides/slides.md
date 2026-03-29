@@ -202,7 +202,7 @@ while True:
       break
     
     tool_result: str = call_tool(response)
-    messages.append({ "role": "tool", "content": tool_result })
+    messages.append({ "role": "tool", "content": tool_result, "tool_call_id": id })
 ```
 
 ---

@@ -6,7 +6,10 @@
 #include <args.hpp>
 #include <fmt/format.h>
 
+#include "constants.hpp"
 #include "utils.hpp"
+
+using json = nlohmann::json;
 
 #ifndef DOTENV
 #error Missing DOTENV preprocessor definition.
@@ -24,9 +27,7 @@ struct Arguments : ArgumentParser {
     );
     std::string cwd_str;
     addString(
-      "--cwd",
-      cwd_str,
-      "Working directory for bash commands (default: current directory)"
+      "--cwd", cwd_str, "Working directory (default: current directory)"
     );
     parseOrExit(argc, argv, "--help");
     if (!cwd_str.empty()) {
@@ -52,39 +53,43 @@ static int run(int argc, char **argv) {
 
   Arguments args(argc, argv);
 
-  fmt::print("[System prompt]\n{}\n", utils::SYSTEM_PROMPT);
+  fmt::print("[System prompt]\n{}\n", constants::SYSTEM_PROMPT);
 
   fmt::print("\n[Bash command: pwd]\n");
   auto [output, exit_code] = utils::bash_command("pwd", args.cwd);
   fmt::print("{}\n", utils::strip(output));
   fmt::print("Exit code: {}\n", exit_code);
 
+  auto messages = json::array();
+  messages.push_back({
+    {"role", "system"},
+    {"content", constants::SYSTEM_PROMPT},
+  });
+  messages.push_back({
+    {"role", "user"},
+    {"content", "Hello, world!"},
+  });
+
   auto response = utils::post_json(
     std::string(OPENAI_BASE_URL) + "/chat/completions",
     OPENAI_API_KEY,
     {
       {"model", args.model},
-      {"messages",
-       {{
-         {"role", "user"},
-         {"content", "Hello, world!"},
-       }}},
+      {"messages", messages},
+      {"tools", constants::TOOL_DEFINITIONS},
     }
   );
 
   fmt::print("\n[OpenAI Response]\n");
   fmt::print("{}\n", response.dump(2));
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 int main(int argc, char **argv) {
   try {
     return run(argc, argv);
   } catch (const std::exception &e) {
-    fmt::print(stderr, "Error: {}\n", e.what());
-    return 1;
-  } catch (...) {
-    fmt::print(stderr, "Error: unknown exception\n");
-    return 1;
+    puts(e.what());
+    return EXIT_FAILURE;
   }
 }

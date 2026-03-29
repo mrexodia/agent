@@ -3,19 +3,12 @@ import json
 import os
 import sys
 
-from agent.utils import SYSTEM_PROMPT, bash_command, post_json
+from agent.utils import bash_command, post_json
+from agent.constants import SYSTEM_PROMPT, TOOL_DEFINITIONS
 
 
 def run() -> int:
-    """Run the demo CLI.
-
-    Returns:
-        Process exit code.
-
-    Raises:
-        Exception: Propagates unexpected infrastructure failures from utility
-            functions such as shell execution and HTTP requests.
-    """
+    # NOTE: pyauto-dotenv handles loading .env files
     openai_base_url = os.getenv("OPENAI_BASE_URL", "")
     if not openai_base_url:
         print("OPENAI_BASE_URL environment variable is not set")
@@ -37,7 +30,7 @@ def run() -> int:
         "--cwd",
         type=str,
         default=os.getcwd(),
-        help="Current working directory for bash commands (default: current directory)",
+        help="Working directory (default: current directory)",
     )
     args = parser.parse_args()
 
@@ -48,12 +41,18 @@ def run() -> int:
     print(output.decode("utf-8").strip())
     print(f"Exit code: {exit_code}")
 
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": "Hello, world!"},
+    ]
+
     response = post_json(
         f"{openai_base_url}/chat/completions",
         openai_api_key,
         {
             "model": args.model,
-            "messages": [{"role": "user", "content": "Hello, world!"}],
+            "messages": messages,
+            "tools": TOOL_DEFINITIONS,
         },
     )
     print("\n[OpenAI Response]")
@@ -62,15 +61,11 @@ def run() -> int:
 
 
 def main() -> int:
-    """Run the CLI with workshop-friendly top-level error handling."""
     try:
         return run()
-    except KeyboardInterrupt:
-        print("Interrupted", file=sys.stderr)
+    except (KeyboardInterrupt, EOFError):
+        print()
         return 130
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
 
 
 if __name__ == "__main__":

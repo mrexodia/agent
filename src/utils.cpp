@@ -1,18 +1,32 @@
 #include "utils.hpp"
 
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <stdexcept>
 #include <vector>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <httplib.h>
 #include <reproc/drain.h>
 #include <reproc/reproc.h>
 
+namespace fs = std::filesystem;
+
 namespace {
 
-std::filesystem::path find_in_path(const std::vector<std::string> &names) {
+fs::path LOG_DIR = [] {
+  auto env_log_dir = std::getenv("AGENT_LOG_DIR");
+  fs::path dir = env_log_dir ? env_log_dir : ".agent-logs";
+  auto now = std::chrono::floor<std::chrono::seconds>(
+    std::chrono::system_clock::now()
+  );
+  dir /= fmt::format("{:%Y-%m-%d_%H-%M-%S}", now);
+  return dir;
+}();
+
+fs::path find_in_path(const std::vector<std::string> &names) {
   const char *path_env = std::getenv("PATH");
   if (!path_env)
     return {};
@@ -32,11 +46,11 @@ std::filesystem::path find_in_path(const std::vector<std::string> &names) {
                           : path_value.substr(start, end - start);
 
     if (!entry.empty()) {
-      std::filesystem::path base(entry);
+      fs::path base(entry);
       for (const auto &name : names) {
         auto candidate = base / name;
-        if (std::filesystem::exists(candidate)) {
-          return std::filesystem::absolute(candidate).lexically_normal();
+        if (fs::exists(candidate)) {
+          return fs::absolute(candidate).lexically_normal();
         }
       }
     }
@@ -49,23 +63,23 @@ std::filesystem::path find_in_path(const std::vector<std::string> &names) {
   return {};
 }
 
-const std::filesystem::path &bash_path() {
-  static const std::filesystem::path path = [] {
+const fs::path &bash_path() {
+  static const fs::path path = [] {
 #ifdef _WIN32
     auto git_path = find_in_path({"git.exe", "git.cmd", "git.bat", "git"});
     if (git_path.empty()) {
       throw std::runtime_error("Git is not installed or not in PATH");
     }
 
-    auto bash = std::filesystem::absolute(
+    auto bash = fs::absolute(
                   git_path.parent_path() / ".." / ".." / "bin" / "bash.exe"
     )
                   .lexically_normal();
 #else
-    std::filesystem::path bash = "/bin/bash";
+    fs::path bash = "/bin/bash";
 #endif
 
-    if (!std::filesystem::exists(bash)) {
+    if (!fs::exists(bash)) {
       throw std::runtime_error(
         fmt::format("Bash not found at {}", bash.string())
       );
@@ -83,6 +97,45 @@ std::runtime_error reproc_error(const std::string &context, int error) {
   );
 }
 
+void split_url(
+  const std::string &url,
+  std::string &scheme_host_port,
+  std::string &path
+) {
+  auto pos = url.find("://");
+  if (pos == std::string::npos) {
+    scheme_host_port = url;
+    path = "/";
+  } else {
+    auto path_pos = url.find('/', pos + 3);
+    if (path_pos != std::string::npos) {
+      scheme_host_port = url.substr(0, path_pos); // "https://api.openai.com"
+      path = url.substr(path_pos);                // "/v1/chat/completions"
+    } else {
+      scheme_host_port = url;
+      path = "/";
+    }
+  }
+}
+
+void log_json(const nlohmann::json &j, const std::string &filename) {
+  if (!fs::exists(LOG_DIR)) {
+    std::error_code ec;
+    fs::create_directories(LOG_DIR, ec);
+    if (ec) {
+      fmt::print(
+        stderr,
+        "Warning: Failed to create log directory {}: {}\n",
+        LOG_DIR.string(),
+        ec.message()
+      );
+      return;
+    }
+    std::ofstream(LOG_DIR.parent_path() / ".gitignore") << "*\n";
+  }
+  std::ofstream(LOG_DIR / filename) << j.dump(2);
+}
+
 } // namespace
 
 namespace utils {
@@ -97,7 +150,7 @@ std::string strip(std::string value) {
   return value.substr(start, end - start + 1);
 }
 
-void load_dotenv(const std::filesystem::path &dotenv_path) {
+void load_dotenv(const fs::path &dotenv_path) {
   std::ifstream dotenv(dotenv_path);
   if (!dotenv.is_open())
     return;
@@ -141,7 +194,7 @@ void load_dotenv(const std::filesystem::path &dotenv_path) {
 
 std::pair<std::string, int> bash_command(
   const std::string &command,
-  std::filesystem::path cwd,
+  fs::path cwd,
   int timeout
 ) {
   auto bash = bash_path().string();
@@ -215,32 +268,14 @@ std::pair<std::string, int> bash_command(
   return {result, exit_status};
 }
 
-static void split_url(
-  const std::string &url,
-  std::string &scheme_host_port,
-  std::string &path
-) {
-  auto pos = url.find("://");
-  if (pos == std::string::npos) {
-    scheme_host_port = url;
-    path = "/";
-  } else {
-    auto path_pos = url.find('/', pos + 3);
-    if (path_pos != std::string::npos) {
-      scheme_host_port = url.substr(0, path_pos); // "https://api.openai.com"
-      path = url.substr(path_pos);                // "/v1/chat/completions"
-    } else {
-      scheme_host_port = url;
-      path = "/";
-    }
-  }
-}
-
 nlohmann::json post_json(
   const std::string &url,
   const std::string &bearer,
   const nlohmann::json &payload
 ) {
+  static uint64_t request_counter = 0;
+  uint64_t request_id = ++request_counter;
+  log_json(payload, fmt::format("{}_request.json", request_id));
   std::string scheme_host_port, path;
   split_url(url, scheme_host_port, path);
   httplib::Client cli(scheme_host_port);
@@ -260,12 +295,31 @@ nlohmann::json post_json(
   }
 
   if (response->status != 200) {
-    throw std::runtime_error(
-      fmt::format("HTTP POST {} failed: {}", url, response->body)
-    );
+    std::string error_message;
+    try {
+      auto error = nlohmann::json::parse(response->body);
+      log_json(error, fmt::format("{}_response.json", request_id));
+      error_message = fmt::format(
+        "HTTP POST {} failed with status {}:\n{}",
+        url,
+        response->status,
+        error.dump(2)
+      );
+    } catch (const std::exception &) {
+      error_message = fmt::format(
+        "HTTP POST {} failed with status {}: {}",
+        url,
+        response->status,
+        response->body
+      );
+      // Fall back to raw body if JSON parsing fails
+    }
+    throw std::runtime_error(error_message);
   }
   try {
-    return nlohmann::json::parse(response->body);
+    auto result = nlohmann::json::parse(response->body);
+    log_json(result, fmt::format("{}_response.json", request_id));
+    return result;
   } catch (const std::exception &e) {
     throw std::runtime_error(
       fmt::format("Failed to parse JSON response from {}: {}", url, e.what())

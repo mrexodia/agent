@@ -1,31 +1,21 @@
+import json
 import os
 import shutil
 import subprocess
 import sys
-from typing import Type, TypeVar, overload
+from datetime import datetime
+from pathlib import Path
+from threading import Lock
+from typing import Any, Type, TypeVar, overload
 
 import requests
 
 BASH_PATH = ""
-SYSTEM_PROMPT = """
-You are an expert coding assistant operating inside a coding agent harness. You help users by reading files, executing commands, editing code, and writing new files.
-
-Available tools:
-- read: Read file contents
-- bash: Execute bash commands (ls, grep, find, etc.)
-- edit: Make surgical edits to files (find exact text and replace)
-- write: Create or overwrite files
-
-In addition to the tools above, you may have access to other custom tools depending on the project.
-
-Guidelines:
-- Use bash for file operations like ls, rg, find
-- Use read to examine files instead of cat or sed.
-- Use edit for precise changes (old text must match exactly).
-- Use write only for new files or complete rewrites.
-- Be concise in your responses
-- Show file paths clearly when working with files
-""".strip()
+LOG_DIR = Path(os.getenv("AGENT_LOG_DIR", ".agent-logs")) / datetime.now().strftime(
+    "%Y-%m-%d_%H-%M-%S"
+)
+_REQUEST_COUNTER = 0
+_REQUEST_COUNTER_LOCK = Lock()
 
 
 def _bash_path() -> str:
@@ -54,6 +44,35 @@ def _bash_path() -> str:
             raise RuntimeError(f"Bash not found at {BASH_PATH}")
 
     return BASH_PATH
+
+
+def _next_request_id() -> int:
+    global _REQUEST_COUNTER
+
+    with _REQUEST_COUNTER_LOCK:
+        _REQUEST_COUNTER += 1
+        return _REQUEST_COUNTER
+
+
+def _log_json(data: Any, filename: str) -> None:
+    try:
+        if not LOG_DIR.exists():
+            LOG_DIR.mkdir(parents=True, exist_ok=True)
+            (LOG_DIR.parent / ".gitignore").write_text("*\n", encoding="utf-8")
+    except OSError as e:
+        print(
+            f"Warning: Failed to create log directory {LOG_DIR}: {e}",
+            file=sys.stderr,
+        )
+        return
+
+    try:
+        (LOG_DIR / filename).write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except OSError as e:
+        print(
+            f"Warning: Failed to write log file {LOG_DIR / filename}: {e}",
+            file=sys.stderr,
+        )
 
 
 def bash_command(
@@ -91,6 +110,10 @@ def post_json(url: str, bearer: str, body: dict, response_type: Type[T]) -> T: .
 def post_json(url: str, bearer: str, body: dict, response_type=None):
     """POST JSON to an authenticated endpoint and parse the JSON response.
 
+    Request and response payloads are logged under ``AGENT_LOG_DIR`` or the
+    default ``.agent-logs/<timestamp>`` directory, matching the C++ utility
+    behavior.
+
     Args:
         url: Absolute endpoint URL.
         bearer: Bearer token without the ``Bearer `` prefix.
@@ -102,9 +125,12 @@ def post_json(url: str, bearer: str, body: dict, response_type=None):
 
     Raises:
         requests.RequestException: If the HTTP request itself fails.
-        RuntimeError: If the server responds with a non-200 status code.
-        ValueError: If the response body is not valid JSON.
+        RuntimeError: If the server responds with a non-200 status code or the
+            response body cannot be parsed as JSON.
     """
+    request_id = _next_request_id()
+    _log_json(body, f"{request_id}_request.json")
+
     response = requests.post(
         url,
         headers={
@@ -114,5 +140,23 @@ def post_json(url: str, bearer: str, body: dict, response_type=None):
         json=body,
     )
     if response.status_code != 200:
-        raise RuntimeError(f"HTTP POST {url} failed: {response.text}")
-    return response.json()
+        try:
+            error = response.json()
+            _log_json(error, f"{request_id}_response.json")
+            error_message = (
+                f"HTTP POST {url} failed with status {response.status_code}:\n"
+                f"{json.dumps(error, indent=2)}"
+            )
+        except Exception:
+            error_message = (
+                f"HTTP POST {url} failed with status {response.status_code}: "
+                f"{response.text}"
+            )
+        raise RuntimeError(error_message)
+
+    try:
+        result = response.json()
+        _log_json(result, f"{request_id}_response.json")
+        return result
+    except Exception as e:
+        raise RuntimeError(f"Failed to parse JSON response from {url}: {e}") from e
