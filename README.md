@@ -45,12 +45,12 @@ Build and run:
 
 ```bash
 cmake -B build
-cmake --build build -j4
-./build/agent
+cmake --build build -j
+build/agent
 ```
 
 Select a different model:
 
 ```bash
-./build/agent --model openai/gpt-oss-120b
+build/agent --model openai/gpt-oss-120b
 ```

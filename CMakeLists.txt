@@ -7,14 +7,12 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+foreach(suffix "" _DEBUG _RELEASE _RELWITHDEBINFO _MINSIZEREL)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY${suffix} "${output_dir}")
+endforeach()
 
 include(cmake/deps.cmake)
-
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/.env")
-    message(FATAL_ERROR "Missing .env file. Please create one based on .env.example")
-endif()
-file(TO_NATIVE_PATH "${PROJECT_SOURCE_DIR}/.env" DOTENV)
 
 add_executable(agent
     src/cli.cpp
@@ -34,4 +32,4 @@ target_precompile_headers(agent PRIVATE
     <fmt/format.h>
 )
 target_compile_features(agent PRIVATE cxx_std_17)
-target_compile_definitions(agent PRIVATE DOTENV="${DOTENV}")
+target_compile_definitions(agent PRIVATE DOTENV="${PROJECT_SOURCE_DIR}/.env")
