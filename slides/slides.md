@@ -229,4 +229,4 @@ Model providers use caching to speed up requests with the same `messages` prefix
 
 # Coding Time!
 
-Repository: https://github.com/mrexodia/coding-agent
+Repository: https://github.com/mrexodia/agent
