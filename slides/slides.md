@@ -169,8 +169,8 @@ Authorization: Bearer <YOUR_API_KEY>
 
 # Tool Calling: Demo
 
-- `requests/tools-turn1.http`
-- `requests/tools-turn2.http`
+- `demos/tools-turn1.http`
+- `demos/tools-turn2.http`
 
 ---
 
