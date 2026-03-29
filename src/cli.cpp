@@ -1,9 +1,10 @@
 #include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <string>
 
-#include <fmt/format.h>
 #include <args.hpp>
+#include <fmt/format.h>
 
 #include "utils.hpp"
 
@@ -13,14 +14,28 @@
 
 struct Arguments : ArgumentParser {
   std::string model = "openai/gpt-oss-20b";
+  std::filesystem::path cwd = std::filesystem::current_path();
 
-  Arguments(int argc, char** argv) : ArgumentParser("Agent CLI") {
-    addString("--model", model, "Model to use for the agent (default: openai/gpt-oss-20b)");
+  Arguments(int argc, char **argv) : ArgumentParser("Agent CLI") {
+    addString(
+      "--model",
+      model,
+      "Model to use for the agent (default: openai/gpt-oss-20b)"
+    );
+    std::string cwd_str;
+    addString(
+      "--cwd",
+      cwd_str,
+      "Working directory for bash commands (default: current directory)"
+    );
     parseOrExit(argc, argv, "--help");
+    if (!cwd_str.empty()) {
+      cwd = cwd_str;
+    }
   }
 };
 
-int main(int argc, char **argv) {
+static int run(int argc, char **argv) {
   utils::load_dotenv(DOTENV);
 
   auto OPENAI_BASE_URL = std::getenv("OPENAI_BASE_URL");
@@ -40,9 +55,7 @@ int main(int argc, char **argv) {
   fmt::print("[System prompt]\n{}\n", utils::SYSTEM_PROMPT);
 
   fmt::print("\n[Bash command: pwd]\n");
-  auto [output, exit_code] = utils::bash_command(
-    "pwd", std::filesystem::current_path()
-  );
+  auto [output, exit_code] = utils::bash_command("pwd", args.cwd);
   fmt::print("{}\n", utils::strip(output));
   fmt::print("Exit code: {}\n", exit_code);
 
@@ -62,4 +75,16 @@ int main(int argc, char **argv) {
   fmt::print("\n[OpenAI Response]\n");
   fmt::print("{}\n", response.dump(2));
   return 0;
+}
+
+int main(int argc, char **argv) {
+  try {
+    return run(argc, argv);
+  } catch (const std::exception &e) {
+    fmt::print(stderr, "Error: {}\n", e.what());
+    return 1;
+  } catch (...) {
+    fmt::print(stderr, "Error: unknown exception\n");
+    return 1;
+  }
 }

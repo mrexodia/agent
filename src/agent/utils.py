@@ -1,10 +1,10 @@
 import os
-import sys
 import shutil
-import requests
 import subprocess
-from typing import TypeVar, Type, overload
+import sys
+from typing import Type, TypeVar, overload
 
+import requests
 
 BASH_PATH = ""
 SYSTEM_PROMPT = """
@@ -29,6 +29,14 @@ Guidelines:
 
 
 def _bash_path() -> str:
+    """Return the absolute path to the bash executable.
+
+    On Windows this resolves Git Bash from the installed Git location.
+
+    Raises:
+        RuntimeError: If Git is missing on Windows or the resolved bash path
+            does not exist.
+    """
     global BASH_PATH
 
     if not BASH_PATH:
@@ -51,7 +59,15 @@ def _bash_path() -> str:
 def bash_command(
     command: str, cwd: str, timeout: int | None = None
 ) -> tuple[bytes, int]:
-    """Run a bash command and return its output and return code."""
+    """Run a bash command and return combined output and exit code.
+
+    Stdout and stderr are merged to match the workshop C++ implementation.
+
+    Raises:
+        RuntimeError: If bash cannot be located.
+        subprocess.TimeoutExpired: If the command exceeds ``timeout`` seconds.
+        OSError: If process creation fails.
+    """
     result = subprocess.run(
         [_bash_path(), "-c", command],
         cwd=cwd,
@@ -73,6 +89,22 @@ def post_json(url: str, bearer: str, body: dict, response_type: Type[T]) -> T: .
 
 
 def post_json(url: str, bearer: str, body: dict, response_type=None):
+    """POST JSON to an authenticated endpoint and parse the JSON response.
+
+    Args:
+        url: Absolute endpoint URL.
+        bearer: Bearer token without the ``Bearer `` prefix.
+        body: JSON request body.
+        response_type: Optional static typing hint for callers that want a
+            narrower return type, for example a ``TypedDict``. This argument is
+            ignored at runtime and no validation or deserialization is
+            performed.
+
+    Raises:
+        requests.RequestException: If the HTTP request itself fails.
+        RuntimeError: If the server responds with a non-200 status code.
+        ValueError: If the response body is not valid JSON.
+    """
     response = requests.post(
         url,
         headers={
@@ -82,5 +114,5 @@ def post_json(url: str, bearer: str, body: dict, response_type=None):
         json=body,
     )
     if response.status_code != 200:
-        raise Exception(f"HTTP POST {url} failed: {response.text}")
+        raise RuntimeError(f"HTTP POST {url} failed: {response.text}")
     return response.json()
