@@ -118,6 +118,8 @@ void split_url(
   }
 }
 
+constexpr int HTTP_CONNECT_TIMEOUT_SECONDS = 5;
+
 void log_json(const nlohmann::json &j, const std::string &filename) {
   if (!fs::exists(LOG_DIR)) {
     std::error_code ec;
@@ -279,6 +281,7 @@ nlohmann::json post_json(
   std::string scheme_host_port, path;
   split_url(url, scheme_host_port, path);
   httplib::Client cli(scheme_host_port);
+  cli.set_connection_timeout(HTTP_CONNECT_TIMEOUT_SECONDS);
   httplib::Headers headers{
     {"Authorization", "Bearer " + bearer},
     {"Content-Type", "application/json"},

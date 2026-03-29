@@ -1,6 +1,6 @@
 # Build your own coding agent
 
-Minimal workshop scaffold in Python and C++.
+Minimal workshop scaffold in Python and C++. This is a workshop scaffold; tool calling and the agent loop are intentionally incomplete.
 
 ## Setup
 

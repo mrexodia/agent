@@ -8,17 +8,6 @@ from agent.constants import SYSTEM_PROMPT, TOOL_DEFINITIONS
 
 
 def run() -> int:
-    # NOTE: pyauto-dotenv handles loading .env files
-    openai_base_url = os.getenv("OPENAI_BASE_URL", "")
-    if not openai_base_url:
-        print("OPENAI_BASE_URL environment variable is not set")
-        return 1
-
-    openai_api_key = os.getenv("OPENAI_API_KEY", "")
-    if not openai_api_key:
-        print("OPENAI_API_KEY environment variable is not set")
-        return 1
-
     parser = argparse.ArgumentParser(description="Agent CLI")
     parser.add_argument(
         "--model",
@@ -33,6 +22,17 @@ def run() -> int:
         help="Working directory (default: current directory)",
     )
     args = parser.parse_args()
+
+    # NOTE: pyauto-dotenv handles loading .env files
+    openai_base_url = os.getenv("OPENAI_BASE_URL", "")
+    if not openai_base_url:
+        print("OPENAI_BASE_URL environment variable is not set")
+        return 1
+
+    openai_api_key = os.getenv("OPENAI_API_KEY", "")
+    if not openai_api_key:
+        print("OPENAI_API_KEY environment variable is not set")
+        return 1
 
     print(f"[System prompt]\n{SYSTEM_PROMPT}")
 

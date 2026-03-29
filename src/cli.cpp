@@ -37,21 +37,21 @@ struct Arguments : ArgumentParser {
 };
 
 static int run(int argc, char **argv) {
+  Arguments args(argc, argv);
+
   utils::load_dotenv(DOTENV);
 
   auto OPENAI_BASE_URL = std::getenv("OPENAI_BASE_URL");
-  if (!OPENAI_BASE_URL) {
+  if (!OPENAI_BASE_URL || !*OPENAI_BASE_URL) {
     fmt::print("OPENAI_BASE_URL environment variable is not set\n");
     return 1;
   }
 
   auto OPENAI_API_KEY = std::getenv("OPENAI_API_KEY");
-  if (!OPENAI_API_KEY) {
+  if (!OPENAI_API_KEY || !*OPENAI_API_KEY) {
     fmt::print("OPENAI_API_KEY environment variable is not set\n");
     return 1;
   }
-
-  Arguments args(argc, argv);
 
   fmt::print("[System prompt]\n{}\n", constants::SYSTEM_PROMPT);
 

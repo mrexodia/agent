@@ -29,7 +29,7 @@ style: |
 # Introduction
 
 Goals:
-- Form a techincal _intuition_
+- Form a technical _intuition_
 - **Build your own agent**
 
 <br>
@@ -150,13 +150,18 @@ Authorization: Bearer <YOUR_API_KEY>
     {
       "type": "function",
       "function": {
-        "name": "read",
-        "description": "Read the contents of a file.",
-        "parameters": { "type": "object", "required": [ "path" ] },
-        "properties": {
-          "path": {
-            "description": "Path to the file to read",
-            "type": "string"
+        "name": "get_weather",
+        "description": "Get the current weather for a location",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "location"
+          ],
+          "properties": {
+            "location": {
+              "type": "string",
+              "description": "The location to get the weather for"
+            }
           }
         }
       }
@@ -220,9 +225,9 @@ Model providers use caching to speed up requests with the same `messages` prefix
 # Templates
 
 - Python/C++
-- Implemented
-  - JSON POST
-  - Bash Tool
+- Functionality
+  - JSON POST (with logging)
+  - `bash_command`
   - [Pi's](https://pi.dev) `system-prompt.md`
 
 ---

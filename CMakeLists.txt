@@ -9,7 +9,7 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 foreach(suffix "" _DEBUG _RELEASE _RELWITHDEBINFO _MINSIZEREL)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY${suffix} "${output_dir}")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY${suffix} "${CMAKE_BINARY_DIR}")
 endforeach()
 
 include(cmake/deps.cmake)

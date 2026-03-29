@@ -11,6 +11,7 @@ from typing import Any, Type, TypeVar, overload
 import requests
 
 BASH_PATH = ""
+HTTP_CONNECT_TIMEOUT_SECONDS = 5
 LOG_DIR = Path(os.getenv("AGENT_LOG_DIR", ".agent-logs")) / datetime.now().strftime(
     "%Y-%m-%d_%H-%M-%S"
 )
@@ -124,7 +125,10 @@ def post_json(url: str, bearer: str, body: dict, response_type=None):
             performed.
 
     Raises:
-        requests.RequestException: If the HTTP request itself fails.
+        requests.RequestException: If the HTTP request itself fails. HTTP
+            connections time out after ``HTTP_CONNECT_TIMEOUT_SECONDS`` seconds,
+            but response reads have no timeout so slow local inference can
+            complete.
         RuntimeError: If the server responds with a non-200 status code or the
             response body cannot be parsed as JSON.
     """
@@ -138,6 +142,7 @@ def post_json(url: str, bearer: str, body: dict, response_type=None):
             "Content-Type": "application/json",
         },
         json=body,
+        timeout=(HTTP_CONNECT_TIMEOUT_SECONDS, None),
     )
     if response.status_code != 200:
         try:
