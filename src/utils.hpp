@@ -3,10 +3,11 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <utility>
 
 namespace utils {
 
-static inline std::string SYSTEM_PROMPT =
+static inline const std::string SYSTEM_PROMPT =
   R"(You are an expert coding assistant operating inside a coding agent harness. You help users by reading files, executing commands, editing code, and writing new files.
 
 Available tools:
@@ -25,9 +26,11 @@ Guidelines:
 - Be concise in your responses
 - Show file paths clearly when working with files)";
 
+std::string strip(std::string value);
+
 void load_dotenv(const std::filesystem::path &dotenv_path);
 
-std::string bash_command(
+std::pair<std::string, int> bash_command(
   const std::string &command,
   std::filesystem::path cwd,
   int timeout = -1

@@ -23,6 +23,7 @@ target_link_libraries(agent PRIVATE
     httplib::httplib
     nlohmann_json::nlohmann_json
     fmt::fmt
+    args::args
     reproc
     $<$<PLATFORM_ID:Darwin>:$<LINK_LIBRARY:FRAMEWORK,Security>>
 )

@@ -53,3 +53,12 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(repoc)
+
+message(STATUS "Fetching LLVMParty/args v1.3...")
+FetchContent_Declare(
+    args
+    GIT_REPOSITORY https://github.com/LLVMParty/args.git
+    GIT_TAG v1.3
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(args)

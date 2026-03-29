@@ -1,6 +1,6 @@
-POST {{$dotenv OPENAI_ENDPOINT}}/chat/completions HTTP/1.1
+POST {{$dotenv OPENAI_BASE_URL}}/chat/completions HTTP/1.1
 Content-Type: application/json
-Authorization: Bearer {{$dotenv OPENAI_BEARER_TOKEN}}
+Authorization: Bearer {{$dotenv OPENAI_API_KEY}}
 
 {
   "model": "openai/gpt-oss-20b",
