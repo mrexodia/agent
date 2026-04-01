@@ -46,7 +46,7 @@ Non-goals:
 
 - _Stateless_ magic black box
   - `def LLM(input: str) -> str` <!-- ignoring multi-modal -->
-- Internal representation: [tokens](https://tiktokenizer.vercel.app/)
+- Internal representation: [tokens](https://tiktokenizer.vercel.app/) (demo)
   - [Andrey Karpathy: Deep Dive into LLMs like ChatGPT](https://www.youtube.com/watch?v=7xTGNNLPyMI)
 - Context window: maximum `input` length
 
@@ -234,4 +234,4 @@ Model providers use caching to speed up requests with the same `messages` prefix
 
 # Coding Time!
 
-Repository: https://github.com/mrexodia/agent
+Repository: https://github.com/mrexodia/agent 

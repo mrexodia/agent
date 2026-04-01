@@ -2,6 +2,8 @@
 
 Minimal workshop scaffold in Python and C++. This is a workshop scaffold; tool calling and the agent loop are intentionally incomplete.
 
+**Note**: This project uses the system prompt from [Pi](https://shittycodingagent.ai) and takes great inspiration from Mario's post [What I learned building an opinionated and minimal coding agent](https://mariozechner.at/posts/2025-11-30-pi-coding-agent/).
+
 ## Setup
 
 Create a `.env` file from the example:
@@ -54,3 +56,7 @@ Select a different model:
 ```bash
 build/agent --model openai/gpt-oss-120b
 ```
+
+## Exercises
+
+Look at [`EXERCISES.md`](./EXERCISES.md) for the tasks you can do.
