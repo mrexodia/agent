@@ -55,6 +55,7 @@ static int run(int argc, char **argv) {
 
   fmt::print("[System prompt]\n{}\n", constants::SYSTEM_PROMPT);
 
+  // Example to show how to run bash commands
   fmt::print("\n[Bash command: pwd]\n");
   auto [output, exit_code] = utils::bash_command("pwd", args.cwd);
   fmt::print("{}\n", utils::strip(output));

@@ -36,6 +36,7 @@ def run() -> int:
 
     print(f"[System prompt]\n{SYSTEM_PROMPT}")
 
+    # Example to show how to run bash commands
     print("\n[Bash command: pwd]")
     output, exit_code = bash_command("pwd", cwd=args.cwd)
     print(output.decode("utf-8").strip())
@@ -57,6 +58,7 @@ def run() -> int:
     )
     print("\n[OpenAI Response]")
     print(json.dumps(response, indent=2))
+
     return 0
 
 

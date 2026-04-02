@@ -73,9 +73,9 @@ Two endpoints:
 1. **`/v1/chat/completions`**
    - Older, widely-supported (OpenRouter)
    - Stateless
-2. `/v1/responses`
+2. `/v1/messages`
    - Newer, more features, worse support
-   - Optional state: `previous_response_id`
+   - Optional state: `previous_message_id`
 
 <br>
 
@@ -103,7 +103,7 @@ Authorization: Bearer <YOUR_API_KEY>
 
 ---
 
-# OpenAI API: Messages Response
+# OpenAI API: Messages message
 
 ```json
 {
@@ -195,19 +195,21 @@ while True:
   messages.append({ "role": "user", "content": user_input })
 
   while True:
-    response = llm_request({
+    message = llm_request({
       "model": "openai/gpt-oss-20b",
       "messages": messages,
       "tools": TOOL_DEFINITIONS,
     })["choices"][0]["message"]
-    messages.append({ "role": "assistant", **response })
+    messages.append(message) # "role": "assistant"
 
-    if not response["tool_calls"]:
-      print(response["content"])
+    if not message.get("tool_calls"):
+      print(message["content"])
       break
     
-    tool_result: str = call_tool(response)
-    messages.append({ "role": "tool", "content": tool_result, "tool_call_id": id })
+    for tool_call in message["tool_calls"]
+      result: str = call_tool(tool_call) # TODO: implement
+      messages.append({ "role": "tool", "content": result,
+                        "tool_call_id": tool_call["id"] })
 ```
 
 ---
@@ -234,4 +236,10 @@ Model providers use caching to speed up requests with the same `messages` prefix
 
 # Coding Time!
 
-Repository: https://github.com/mrexodia/agent 
+```bash
+# Clone repository
+git clone https://github.com/mrexodia/agent
+
+# Check the exercises
+cat agent/EXERCISES.md
+```

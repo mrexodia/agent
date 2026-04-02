@@ -19,4 +19,22 @@ Guidelines:
 """.strip()
 
 # TODO: Add real tool definitions here
-TOOL_DEFINITIONS = []
+TOOL_DEFINITIONS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get the current weather for a location",
+            "parameters": {
+                "type": "object",
+                "required": ["location"],
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The location to get the weather for",
+                    }
+                },
+            },
+        },
+    }
+]

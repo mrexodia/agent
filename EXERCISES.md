@@ -4,7 +4,14 @@ Below are the exercises to help you build your own coding agent incrementally. I
 
 ## Exercise 1: Hello, world!
 
-Get the template to run in the language of your choice. Expected output:
+Set up the environment:
+
+```bash
+cp .env.example .env
+# Update OPENAI_API_KEY with your key
+```
+
+Get the template to run in the language of your choice (see `README.md`). Expected output:
 
 ```
 [System prompt]
@@ -92,9 +99,13 @@ Make a basic chat app with multi-turn support (ChatGPT clone). Print `reasoning`
 
 Have a conversation about your favorite programming language. Verify that the model remembers what you said in previous turns.
 
+_Note_: Check the `.agent-logs` folder that gets created to see the JSON request/response pairs.
+
 ## Exercise 3: Bash
 
 Implement `bash` tool calling support (**use `bash_command` from utils**). If you want, add tool approval (and a `--yolo` flag to bypass it).
+
+You have to modify the `TOOL_DEFINITIONS` JSON array to have a `bash` tool instead of `get_weather`.
 
 Test prompt:
 
@@ -105,6 +116,13 @@ Once that works, try something like this:
 > Can you add a comment to the top of `cli.py`?
 
 How will the agent write to files?
+
+Documentation:
+
+- https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
+- https://lmstudio.ai/docs/developer/openai-compat/tools#example-using-curl
+
+**IMPORTANT**: Not all providers validate the schema of the `tools` array, make sure to follow the example pattern. Without this you might run into really confusing errors.
 
 ## Exercise 4: Agent
 
