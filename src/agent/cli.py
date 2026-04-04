@@ -1,19 +1,21 @@
-import argparse
-import json
 import os
 import sys
+import argparse
+from datetime import datetime
 
-from agent.utils import bash_command, post_json
-from agent.constants import SYSTEM_PROMPT, TOOL_DEFINITIONS
+from agent.utils import post_json
+from agent.constants import SYSTEM_PROMPT
+from agent import tools
 
 
 def run() -> int:
+    default_model = "openai/gpt-oss-20b"
     parser = argparse.ArgumentParser(description="Agent CLI")
     parser.add_argument(
         "--model",
         type=str,
-        default="openai/gpt-oss-20b",
-        help="Model to use for the agent (default: openai/gpt-oss-20b)",
+        default=default_model,
+        help=f"Model to use for the agent (default: {default_model})",
     )
     parser.add_argument(
         "--cwd",
@@ -22,6 +24,7 @@ def run() -> int:
         help="Working directory (default: current directory)",
     )
     args = parser.parse_args()
+    tools.WORKING_DIRECTORY = os.path.abspath(os.path.expanduser(args.cwd))
 
     # NOTE: pyauto-dotenv handles loading .env files
     openai_base_url = os.getenv("OPENAI_BASE_URL", "")
@@ -34,32 +37,59 @@ def run() -> int:
         print("OPENAI_API_KEY environment variable is not set")
         return 1
 
-    print(f"[System prompt]\n{SYSTEM_PROMPT}")
-
-    # Example to show how to run bash commands
-    print("\n[Bash command: pwd]")
-    output, exit_code = bash_command("pwd", cwd=args.cwd)
-    print(output.decode("utf-8").strip())
-    print(f"Exit code: {exit_code}")
-
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "Hello, world!"},
-    ]
-
-    response = post_json(
-        f"{openai_base_url}/chat/completions",
-        openai_api_key,
-        {
-            "model": args.model,
-            "messages": messages,
-            "tools": TOOL_DEFINITIONS,
-        },
+    tool_definitions = tools.generate_tool_definitions()
+    system_prompt = (
+        SYSTEM_PROMPT
+        + f"""
+Date: {datetime.now().strftime("%Y-%m-%d")}
+Working directory: {tools.WORKING_DIRECTORY}
+"""
     )
-    print("\n[OpenAI Response]")
-    print(json.dumps(response, indent=2))
+    messages = [{"role": "system", "content": system_prompt}]
+    while True:
+        query = input("😎 ")
+        messages.append({"role": "user", "content": query})
+        while True:
+            response = post_json(
+                f"{openai_base_url}/chat/completions",
+                openai_api_key,
+                {
+                    "model": args.model,
+                    "messages": messages,
+                    "tools": tool_definitions,
+                    "cache_prompt": True,
+                },
+            )
+            message = response["choices"][0]["message"]
+            messages.append(message)
 
-    return 0
+            reasoning = message.get("reasoning", "").strip()
+            if not reasoning:
+                reasoning = message.get("reasoning_content", "").strip()
+            if reasoning:
+                print("💭", f"[{reasoning}]")
+
+            content = message.get("content", "").strip()
+            if content:
+                print("🤖", content)
+
+            tool_calls = message.get("tool_calls", [])
+            for tool_call in tool_calls:
+                assert tool_call["type"] == "function"
+                function = tool_call["function"]
+                result = tools.call_tool(function["name"], function["arguments"])
+                messages.append(
+                    {"role": "tool", "content": result, "tool_call_id": tool_call["id"]}
+                )
+
+            usage = response.get("usage", {})
+            total_tokens = usage.get("total_tokens")
+            if total_tokens:
+                print("📊", f"{total_tokens / 1000:.1f}k tokens")
+
+            if not tool_calls:
+                print()
+                break
 
 
 def main() -> int:
