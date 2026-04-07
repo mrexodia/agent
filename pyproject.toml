@@ -12,5 +12,11 @@ dependencies = [
 [tool.uv]
 package = true
 
+[dependency-groups]
+dev = [
+    "ruff>=0.15.9",
+    "ty>=0.0.28",
+]
+
 [project.scripts]
 agent = "agent.cli:main"
