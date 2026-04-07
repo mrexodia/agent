@@ -19,3 +19,6 @@ build*/
 cmake-build*/
 CMakeLists.txt.user
 .cache/clangd/
+
+# macos
+.DS_Store
