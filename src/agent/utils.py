@@ -19,10 +19,30 @@ _REQUEST_COUNTER = 0
 _REQUEST_COUNTER_LOCK = Lock()
 
 
+def _windows_bash_path(git_path: str) -> str:
+    """Resolve the console bash executable relative to ``git`` on Windows.
+
+    ``git-bash.exe`` is a GUI launcher, so for subprocess execution we prefer
+    the real shell binary shipped with Git for Windows at ``usr/bin/bash.exe``.
+    If that layout is not present (for example in Cygwin), fall back to
+    ``bin/bash.exe`` while walking up from the discovered ``git`` location.
+    """
+    git_dir = Path(os.path.abspath(git_path)).parent
+    ancestors = (git_dir, *git_dir.parents)
+
+    for relative in (Path("usr") / "bin" / "bash.exe", Path("bin") / "bash.exe"):
+        for base in ancestors:
+            candidate = (base / relative).resolve()
+            if candidate.exists():
+                return os.fspath(candidate)
+
+    raise RuntimeError(f"Bash not found relative to Git at {git_path}")
+
+
 def _bash_path() -> str:
     """Return the absolute path to the bash executable.
 
-    On Windows this resolves Git Bash from the installed Git location.
+    On Windows this resolves the console bash executable that ships with Git.
 
     Raises:
         RuntimeError: If Git is missing on Windows or the resolved bash path
@@ -35,9 +55,7 @@ def _bash_path() -> str:
             git_path = shutil.which("git")
             if not git_path:
                 raise RuntimeError("Git is not installed or not in PATH")
-            BASH_PATH = os.path.abspath(
-                os.path.join(os.path.dirname(git_path), "../../bin/bash.exe")
-            )
+            BASH_PATH = _windows_bash_path(git_path)
         else:
             BASH_PATH = "/bin/bash"
 

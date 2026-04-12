@@ -63,6 +63,43 @@ fs::path find_in_path(const std::vector<std::string> &names) {
   return {};
 }
 
+#ifdef _WIN32
+fs::path find_relative_to_ancestors(fs::path start, const fs::path &suffix) {
+  while (!start.empty()) {
+    auto candidate = fs::absolute(start / suffix).lexically_normal();
+    if (fs::exists(candidate)) {
+      return candidate;
+    }
+
+    auto parent = start.parent_path();
+    if (parent == start) {
+      break;
+    }
+    start = parent;
+  }
+
+  return {};
+}
+
+fs::path find_windows_bash(const fs::path &git_path) {
+  auto git_dir = git_path.parent_path();
+
+  // git-bash.exe launches a GUI window; for subprocess execution we want the
+  // actual console shell, which Git for Windows provides at usr/bin/bash.exe.
+  for (const auto &relative : {
+         fs::path("usr") / "bin" / "bash.exe",
+         fs::path("bin") / "bash.exe",
+       }) {
+    auto bash = find_relative_to_ancestors(git_dir, relative);
+    if (!bash.empty()) {
+      return bash;
+    }
+  }
+
+  return {};
+}
+#endif
+
 const fs::path &bash_path() {
   static const fs::path path = [] {
 #ifdef _WIN32
@@ -71,10 +108,12 @@ const fs::path &bash_path() {
       throw std::runtime_error("Git is not installed or not in PATH");
     }
 
-    auto bash = fs::absolute(
-                  git_path.parent_path() / ".." / ".." / "bin" / "bash.exe"
-    )
-                  .lexically_normal();
+    auto bash = find_windows_bash(git_path);
+    if (bash.empty()) {
+      throw std::runtime_error(
+        fmt::format("Bash not found relative to Git at {}", git_path.string())
+      );
+    }
 #else
     fs::path bash = "/bin/bash";
 #endif
