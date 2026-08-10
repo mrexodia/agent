@@ -3,151 +3,173 @@ Model: google/gemma-4-26b-a4b
 Created: 3/28/2026, 3:16:25 PM
 Exported from: LM Studio 0.4.9+1
 
-### System
-SYSTEM PROMPT:
+## System
+```xml
 You are a coding assistant. You have access to the following tools:
 
-&lt;tool_definitions&gt;
-&lt;tool name="read_file"&gt;
-  &lt;description&gt;Read the contents of a file at the given path.&lt;/description&gt;
-  &lt;parameters&gt;
-    &lt;parameter name="path" type="string" required="true"&gt;
+<tool_definitions>
+<tool name="read_file">
+  <description>Read the contents of a file at the given path.</description>
+  <parameters>
+    <parameter name="path" type="string" required="true">
       The file path to read, relative to the project root.
-    &lt;/parameter&gt;
-  &lt;/parameters&gt;
-&lt;/tool&gt;
+    </parameter>
+  </parameters>
+</tool>
 
-&lt;tool name="write_file"&gt;
-  &lt;description&gt;Write content to a file. Creates it if it doesn't exist.&lt;/description&gt;
-  &lt;parameters&gt;
-    &lt;parameter name="path" type="string" required="true"&gt;File path to write to.&lt;/parameter&gt;
-    &lt;parameter name="content" type="string" required="true"&gt;Content to write.&lt;/parameter&gt;
-  &lt;/parameters&gt;
-&lt;/tool&gt;
+<tool name="write_file">
+  <description>Write content to a file. Creates it if it doesn't exist.</description>
+  <parameters>
+    <parameter name="path" type="string" required="true">File path to write to.</parameter>
+    <parameter name="content" type="string" required="true">Content to write.</parameter>
+  </parameters>
+</tool>
 
-&lt;tool name="run_bash"&gt;
-  &lt;description&gt;Execute a bash command and return stdout and stderr.&lt;/description&gt;
-  &lt;parameters&gt;
-    &lt;parameter name="command" type="string" required="true"&gt;The command to run.&lt;/parameter&gt;
-  &lt;/parameters&gt;
-&lt;/tool&gt;
-&lt;/tool_definitions&gt;
+<tool name="run_bash">
+  <description>Execute a bash command and return stdout and stderr.</description>
+  <parameters>
+    <parameter name="command" type="string" required="true">The command to run.</parameter>
+  </parameters>
+</tool>
+</tool_definitions>
 
 When you need to use a tool, output it in the following XML format:
 
-&lt;tool_use&gt;
-&lt;tool_name&gt;tool_name_here&lt;/tool_name&gt;
-&lt;parameters&gt;
-&lt;path&gt;some/file.js&lt;/path&gt;
-&lt;/parameters&gt;
-&lt;/tool_use&gt;
+<tool_use>
+<tool_name>tool_name_here</tool_name>
+<parameters>
+<path>some/file.js</path>
+</parameters>
+</tool_use>
 
 IMPORTANT: Output ONLY the tool_use block when calling a tool. Do not output any
 other text before or after it. Wait for the tool result before continuing.
 
 Here are examples of correct tool usage:
 
-&lt;example&gt;
-&lt;user&gt;What's in the main config file?&lt;/user&gt;
-&lt;assistant&gt;
-&lt;tool_use&gt;
-&lt;tool_name&gt;read_file&lt;/tool_name&gt;
-&lt;parameters&gt;
-&lt;path&gt;config.json&lt;/path&gt;
-&lt;/parameters&gt;
-&lt;/tool_use&gt;
-&lt;/assistant&gt;
-&lt;tool_result&gt;
+<example>
+<user>What's in the main config file?</user>
+<assistant>
+<tool_use>
+<tool_name>read_file</tool_name>
+<parameters>
+<path>config.json</path>
+</parameters>
+</tool_use>
+</assistant>
+<tool_result>
 {"port": 3000, "debug": true, "db": "postgres://localhost/myapp"}
-&lt;/tool_result&gt;
-&lt;assistant&gt;
+</tool_result>
+<assistant>
 The config file sets the server to port 3000 with debug mode enabled,
 connecting to a local PostgreSQL database called "myapp".
-&lt;/assistant&gt;
-&lt;/example&gt;
+</assistant>
+</example>
 
-&lt;example&gt;
-&lt;user&gt;Install express and create a basic server.&lt;/user&gt;
-&lt;assistant&gt;
+<example>
+<user>Install express and create a basic server.</user>
+<assistant>
 I'll install express first, then create the server file.
 
-&lt;tool_use&gt;
-&lt;tool_name&gt;run_bash&lt;/tool_name&gt;
-&lt;parameters&gt;
-&lt;command&gt;npm install express&lt;/command&gt;
-&lt;/parameters&gt;
-&lt;/tool_use&gt;
-&lt;/assistant&gt;
-&lt;tool_result&gt;
+<tool_use>
+<tool_name>run_bash</tool_name>
+<parameters>
+<command>npm install express</command>
+</parameters>
+</tool_use>
+</assistant>
+<tool_result>
 added 64 packages in 2.1s
-&lt;/tool_result&gt;
-&lt;assistant&gt;
-&lt;tool_use&gt;
-&lt;tool_name&gt;write_file&lt;/tool_name&gt;
-&lt;parameters&gt;
-&lt;path&gt;server.js&lt;/path&gt;
-&lt;content&gt;const express = require('express');
+</tool_result>
+<assistant>
+<tool_use>
+<tool_name>write_file</tool_name>
+<parameters>
+<path>server.js</path>
+<content>const express = require('express');
 const app = express();
 
-app.get('/', (req, res) =&gt; {
+app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-app.listen(3000, () =&gt; {
+app.listen(3000, () => {
   console.log('Server running on port 3000');
 });
-&lt;/content&gt;
-&lt;/parameters&gt;
-&lt;/tool_use&gt;
-&lt;/assistant&gt;
-&lt;tool_result&gt;
+</content>
+</parameters>
+</tool_use>
+</assistant>
+<tool_result>
 File written successfully: server.js
-&lt;/tool_result&gt;
-&lt;assistant&gt;
+</tool_result>
+<assistant>
 Done! I've installed express and created server.js. Run it with `node server.js`.
-&lt;/assistant&gt;
-&lt;/example&gt;
+</assistant>
+</example>
 
 Your job is to use tools to interact with your environment and help the user with their requests as best you can.
 
 Working directory: /Users/duncan/Projects/gemini-meeting-notes
+```
 
-### User
+---
+
+## User
 What is project?
 
-### Assistant
-&lt;tool_use&gt;
-&lt;tool_name&gt;read_file&lt;/tool_name&gt;
-&lt;parameters&gt;
-&lt;path&gt;README.md&lt;/path&gt;
-&lt;/parameters&gt;
-&lt;/tool_use&gt;
+---
 
-### User
-&lt;tool_result&gt;
+## Assistant
+```xml
+<tool_use>
+<tool_name>read_file</tool_name>
+<parameters>
+<path>README.md</path>
+</parameters>
+</tool_use>
+```
+
+---
+
+## User (tool result)
+```xml
+<tool_result>
 # gemini-meeting-notes
 Project to use your Google OAuth credentials to scrape meeting notes from Gemini.
 Key implementation: poc.py
-&lt;/tool_result&gt;
+</tool_result>
+```
 
-### Assistant
+---
+
+## Assistant
 The project is called "gemini-meeting-notes." It is designed to use Google OAuth credentials to scrape meeting notes from Gemini. The key implementation file for this project is `poc.py`.
 
-### User
+---
+
+## User
 How exactly does it work, what APIs does it use?
 
-### Assistant
+---
+
+## Assistant
 To understand how the project works and the APIs it uses, I'll need to read the `poc.py` file and any other relevant documentation. Let's start by reading the `poc.py` file.
 
-&lt;tool_use&gt;
-&lt;tool_name&gt;read_file&lt;/tool_name&gt;
-&lt;parameters&gt;
-&lt;path&gt;poc.py&lt;/path&gt;
-&lt;/parameters&gt;
-&lt;/tool_use&gt;
+```xml
+<tool_use>
+<tool_name>read_file</tool_name>
+<parameters>
+<path>poc.py</path>
+</parameters>
+</tool_use>
+```
 
-### User
-&lt;tool_result&gt;
+---
+
+## User (tool result)
+```xml
+<tool_result>
 import datetime
 import re
 import sys
@@ -252,7 +274,7 @@ def main():
                 continue
             exported_ids.add(file_id)
             name = f'{time_prefix} {event_name}'
-            if len(doc_ids) &gt; 1:
+            if len(doc_ids) > 1:
                 name += f' ({i + 1})'
             out_path = day_dir / f'{name}.md'
             if out_path.exists():
@@ -304,9 +326,12 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         stderr.print("\nInterrupted")
         sys.exit(1)
-&lt;/tool_result&gt;
+</tool_result>
+```
 
-### Assistant
+---
+
+## Assistant
 The `poc.py` script is designed to scrape meeting notes from Gemini using Google OAuth credentials. It uses the following APIs:
 
 1. **Google Calendar API**: To fetch calendar events.
@@ -348,21 +373,29 @@ The `poc.py` script is designed to scrape meeting notes from Gemini using Google
 
 This script provides a comprehensive solution for scraping and organizing meeting notes from Gemini using Google APIs.
 
-### User
+---
+
+## User
 Any other files in this directory?
 
-### Assistant
+---
+
+## Assistant
 To list the files in the current directory, I'll use the `run_bash` tool to execute the `ls` command.
 
-&lt;tool_use&gt;
-&lt;tool_name&gt;run_bash&lt;/tool_name&gt;
-&lt;parameters&gt;
-&lt;command&gt;ls&lt;/command&gt;
-&lt;/parameters&gt;
-&lt;/tool_use&gt;
+```xml
+<tool_use>
+<tool_name>run_bash</tool_name>
+<parameters>
+<command>ls</command>
+</parameters>
+</tool_use>
+```
 
-### User
-&lt;tool_result&gt;
+## User (tool result)
+
+```xml
+<tool_result>
 credentials.json
 output
 poc.py
@@ -370,9 +403,12 @@ pyproject.toml
 README.md
 token.json
 uv.lock
-&lt;/tool_result&gt;
+</tool_result>
+```
 
-### Assistant
+---
+
+## Assistant
 The current directory contains the following files:
 
 - `credentials.json`: Contains the Google API credentials.
